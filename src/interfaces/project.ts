@@ -1,7 +1,4 @@
-import { PjWorkingGroupConfirmStatus } from './common';
-import { Partner } from './partner';
-import { UploadedFile } from './uploaded-file';
-import { ProjectUser } from './user';
+import { PjWorkingGroupConfirmStatus } from "./common";
 
 export enum ProjectStep {
   CREATE_NEW_PROJECT = 1,
@@ -19,7 +16,7 @@ export enum ProjectStatus {
 export interface WorkingGroup {
   id: string;
   acceptStatus: number;
-  member: ProjectUser;
+  member: any;
   fullName?: string;
   confirmStatus: PjWorkingGroupConfirmStatus;
 }
@@ -77,22 +74,22 @@ export interface Project {
   commentsCount: number;
   name: string;
   projectId: string;
-  projectPartners: Partner[];
-  partners: Partner[];
+  projectPartners: any[];
+  partners: any[];
   objective: string;
   successMetrics: string;
   background: string;
   createdAt: string;
   updatedAt: string;
   workingGroup: WorkingGroup[];
-  objectiveOwners: ProjectUser[];
-  backgroundOwners: ProjectUser[];
+  objectiveOwners: any[];
+  backgroundOwners: any[];
   timelines: Timeline[];
   createCurrentStep: ProjectStep;
-  supportingDocuments: UploadedFile[];
+  supportingDocuments: any[];
   insights: string;
   targetSegments: string;
-  audienceOwners: ProjectUser[];
+  audienceOwners: any[];
   isApproved: boolean;
   masterParentId: string;
   createdByUserId: number;
@@ -133,7 +130,7 @@ export interface ProjectInList {
   masterParentId: string | null;
   name: string;
   parentId: string | null;
-  partners: Partner[];
+  partners: any[];
   projectId: string;
   status: ProjectStatus;
   subBrief: Project[];
@@ -144,7 +141,7 @@ export interface ProjectInList {
 export interface Timeline {
   milestone: string;
   dueDate: string;
-  owner: ProjectUser | null;
+  owner: any | null;
   id: number;
   projectId?: number;
   createdAt?: string;
@@ -159,7 +156,7 @@ export interface UpdateTimeline {
   id: number | string;
   milestone?: string;
   dueDate?: string;
-  owner: ProjectUser | null;
+  owner: any | null;
   status?: any;
 }
 
@@ -169,10 +166,10 @@ export enum TimelineDocumentApproveStatus {
   REJECTED = 3,
 }
 
-export interface TimelineDocument extends Omit<UploadedFile, 'raw'> {
+export interface TimelineDocument extends Omit<any, "raw"> {
   name: string;
   createdAt: string;
-  ownerUser: ProjectUser;
+  ownerUser: any;
   ownerUserId: number;
   isOwnerDeleted?: boolean;
   approveStatus: TimelineDocumentApproveStatus;
@@ -197,7 +194,7 @@ export interface BudgetFormValue {
     {
       id: number;
       budget: number;
-    },
+    }
   ];
 }
 

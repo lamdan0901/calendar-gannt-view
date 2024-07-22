@@ -6,7 +6,7 @@ import { CalendarButton } from "./Button";
 import { CalendarGrid } from "./CalendarGrid";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { Box, Heading } from "@chakra-ui/react";
-import { LOCALE } from '@/constants/common";
+import { LOCALE } from "@/constants/common";
 import dayjs from "dayjs";
 
 export function RangeCalendar(props: any) {
