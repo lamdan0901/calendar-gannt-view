@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import dayjs from "dayjs";
-import { BriefEvent } from "@/calendar/const";
+import { BriefEvent, MIN_NUM_OF_DAYS__MONTH } from "@/calendar/const";
 import { MilestoneListForYear } from "@/calendar/GanttView/MonthlyMilestoneList";
 import { endOfMonth, startOfMonth } from "@/calendar/helpers";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +23,13 @@ export function MonthView({
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfMonth(startDate));
     let endDateOfView = dayjs(endOfMonth(endDate));
+
+    const startEndDiff = endDateOfView.diff(startDateOfView, "day");
+    if (startEndDiff < MIN_NUM_OF_DAYS__MONTH) {
+      endDateOfView = dayjs(endDate)
+        .endOf("month")
+        .add(MIN_NUM_OF_DAYS__MONTH - startEndDiff, "day");
+    }
 
     while (startDateOfView.isSameOrBefore(endDateOfView, "day")) {
       days.push(startDateOfView);
@@ -59,17 +66,18 @@ export function MonthView({
     "day"
   );
 
-  const monthWidth = 180;
-  let startDateOfView = dayjs(startOfMonth(startDate));
-  let endDateOfView = dayjs(endOfMonth(endDate));
-  const numOfDays = endDateOfView.diff(startDateOfView, "day");
-  const numOfMonths = Object.values(groupedMonths).flat().length;
+  const monthWidth = 186;
+  const months = Object.values(groupedMonths).flat();
+  const firstM = dayjs(months[0], "MMM YYYY").startOf("month");
+  const lastM = dayjs(months.at(-1), "MMM YYYY").endOf("month");
+  const numOfDays = lastM.diff(firstM, "day");
 
   return (
-    <Box h={"calc(100vh - 311px)"} overflow={"auto"}>
+    <Box h={"calc(100vh - 187px)"} pl={"4px"} overflow={"auto"}>
       <Box
         w={"fit-content"}
         ref={containerRef}
+        borderLeft={"1px solid #CCCED2"}
         borderBlock={"1px solid #CCCED2"}
         display={"flex"}
       >
@@ -110,7 +118,7 @@ export function MonthView({
         containerWidth={containerWidth}
         monthWidth={monthWidth}
         numOfDays={numOfDays}
-        numOfMonths={numOfMonths}
+        numOfMonths={months.length}
         initialTimelineMarginLeft={initialTimelineMarginLeft}
       />
     </Box>

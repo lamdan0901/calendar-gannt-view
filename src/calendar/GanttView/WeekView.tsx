@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import dayjs from "dayjs";
-import { BriefEvent } from "@/calendar/const";
+import { BriefEvent, MIN_NUM_OF_DAYS__WEEK } from "@/calendar/const";
 import { MilestoneList } from "@/calendar/GanttView/WeeklyMilestones";
 import { endOfWeek, startOfWeek } from "@/calendar/helpers";
 
@@ -19,6 +19,13 @@ export function WeekView({
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfWeek(startDate));
     let endDateOfView = dayjs(endOfWeek(endDate));
+
+    const startEndDiff = endDateOfView.diff(startDateOfView, "day");
+    if (startEndDiff < MIN_NUM_OF_DAYS__WEEK) {
+      endDateOfView = dayjs(endDate)
+        .add(MIN_NUM_OF_DAYS__WEEK - startEndDiff, "day")
+        .endOf("week");
+    }
 
     while (startDateOfView.isSameOrBefore(endDateOfView, "day")) {
       days.push(startDateOfView);
@@ -74,7 +81,7 @@ export function WeekView({
 
   if (!timelines || timelines.length === 0) return null;
 
-  const weekWidth = 154;
+  const weekWidth = 155;
   const daysPerWeek = 7;
   const dayWidth = weekWidth / daysPerWeek;
 
@@ -88,8 +95,13 @@ export function WeekView({
   );
 
   return (
-    <Box h={"calc(100vh - 311px)"} overflow={"auto"}>
-      <Box w={"fit-content"} borderTop={"1px solid #CCCED2"} display={"flex"}>
+    <Box pl="8px" h={"calc(100vh - 187px)"} overflow={"auto"}>
+      <Box
+        borderLeft={"1px solid #CCCED2"}
+        w={"fit-content"}
+        borderTop={"1px solid #CCCED2"}
+        display={"flex"}
+      >
         {Object.keys(months ?? {}).map((monthYear) => (
           <Box
             display={"flex"}
@@ -101,13 +113,16 @@ export function WeekView({
             key={monthYear}
             borderRight={"1px solid #CCCED2"}
           >
-            <Box py={"4px"}>{monthYear}</Box>
+            <Box textAlign={"center"} py={"4px"}>
+              {monthYear}
+            </Box>
           </Box>
         ))}
       </Box>
       <Box
         w={"fit-content"}
         display={"flex"}
+        borderLeft={"1px solid #CCCED2"}
         borderBlock={"1px solid #CCCED2"}
         alignItems={"center"}
       >

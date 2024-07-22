@@ -52,7 +52,6 @@ const DayView = ({ date, events, onEventClick }: DayViewProps) => {
                 width="357px"
                 height="196px"
                 event={event}
-                index={event.timelineIndex ?? 0}
                 sx={{
                   cursor: "pointer",
                 }}

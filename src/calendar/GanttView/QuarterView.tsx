@@ -1,8 +1,13 @@
 import { Box } from "@chakra-ui/react";
 import dayjs from "dayjs";
-import { BriefEvent } from "@/calendar/const";
+import { BriefEvent, MIN_NUM_OF_DAYS__QUARTER } from "@/calendar/const";
 import { MilestoneListForYear } from "@/calendar/GanttView/MonthlyMilestoneList";
-import { endOfMonth, startOfMonth } from "@/calendar/helpers";
+import {
+  endOfMonth,
+  getFirstDayOfQuarter,
+  getLastDayOfQuarter,
+  startOfMonth,
+} from "@/calendar/helpers";
 import { useEffect, useRef, useState } from "react";
 import quarterOfYear from "dayjs/plugin/quarterOfYear";
 
@@ -26,6 +31,16 @@ export function QuarterView({
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfMonth(startDate));
     let endDateOfView = dayjs(endOfMonth(endDate));
+
+    const startEndDiff = endDateOfView.diff(startDateOfView, "day");
+
+    if (startEndDiff < MIN_NUM_OF_DAYS__QUARTER) {
+      endDateOfView = dayjs(endDate)
+        .endOf("month")
+        .add(MIN_NUM_OF_DAYS__QUARTER - startEndDiff, "day");
+    }
+
+    console.log("endDateOfView: ", endDateOfView);
 
     while (startDateOfView.isSameOrBefore(endDateOfView, "day")) {
       days.push(startDateOfView);
@@ -62,17 +77,21 @@ export function QuarterView({
     "day"
   );
 
-  const quarterWidth = 260;
-  let startDateOfView = dayjs(startDate).startOf("quarter");
-  let endDateOfView = dayjs(endDate).endOf("quarter");
-  const numOfDays = endDateOfView.diff(startDateOfView, "day");
-  const numOfQuarters = Object.values(groupedQuarters).flat().length;
+  const quarterWidth = 265;
+  const quarters = Object.values(groupedQuarters).flat();
+  const firstQ = getFirstDayOfQuarter(years[0], Number(quarters[0].slice(1)));
+  const lastQ = getLastDayOfQuarter(
+    years.at(-1),
+    Number(quarters.at(-1)?.slice(1))
+  );
+  const numOfDays = lastQ.diff(firstQ, "day");
 
   return (
-    <Box h={"calc(100vh - 311px)"} overflow={"auto"}>
+    <Box h={"calc(100vh - 187px)"} pl={"6px"} overflow={"auto"}>
       <Box
         w={"fit-content"}
         ref={containerRef}
+        borderLeft={"1px solid #CCCED2"}
         borderBlock={"1px solid #CCCED2"}
         display={"flex"}
       >
@@ -113,7 +132,7 @@ export function QuarterView({
         containerWidth={containerWidth}
         monthWidth={quarterWidth}
         numOfDays={numOfDays}
-        numOfMonths={numOfQuarters}
+        numOfMonths={quarters.length}
         initialTimelineMarginLeft={initialTimelineMarginLeft}
       />
     </Box>

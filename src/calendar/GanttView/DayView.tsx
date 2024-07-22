@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import dayjs from "dayjs";
-import { BriefEvent } from "@/calendar/const";
+import { BriefEvent, MIN_NUM_OF_DAYS__DAY } from "@/calendar/const";
 import { MilestoneList } from "@/calendar/GanttView/WeeklyMilestones";
 import { endOfWeek, getShortDay, startOfWeek } from "@/calendar/helpers";
 
@@ -19,6 +19,16 @@ export function DayView({
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfWeek(startDate));
     let endDateOfView = dayjs(endOfWeek(endDate));
+
+    const startEndDiff = endDateOfView.diff(startDateOfView, "day");
+    if (startEndDiff < MIN_NUM_OF_DAYS__DAY) {
+      endDateOfView = dayjs(endDate)
+        .add(MIN_NUM_OF_DAYS__DAY - startEndDiff, "day")
+        .endOf("week");
+    }
+    if (endDateOfView.day() === 6) {
+      endDateOfView = endDateOfView.add(1, "day");
+    }
 
     while (startDateOfView.isSameOrBefore(endDateOfView, "day")) {
       days.push(startDateOfView);
@@ -47,13 +57,18 @@ export function DayView({
   );
 
   const borderWidth = 1;
-  const dayWidth = 36;
+  const dayWidth = 33;
   const daysPerWeek = 7;
   const weekWidth = dayWidth * daysPerWeek + borderWidth;
 
   return (
-    <Box h={"calc(100vh - 311px)"} overflow={"auto"}>
-      <Box w={"fit-content"} borderBlock={"1px solid #CCCED2"} display={"flex"}>
+    <Box h={"calc(100vh - 187px)"} pl="14px" overflow={"auto"}>
+      <Box
+        w={"fit-content"}
+        borderLeft={"1px solid #CCCED2"}
+        borderBlock={"1px solid #CCCED2"}
+        display={"flex"}
+      >
         {weeks?.map((w) => (
           <Box
             display={"flex"}

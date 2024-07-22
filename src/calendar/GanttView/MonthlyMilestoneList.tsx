@@ -61,6 +61,7 @@ export function MilestoneListForYear({
       w={`${containerWidth}px`}
       pl={`${dayWidth / 2}px`}
       py={"8px"}
+      borderLeft={"1px solid #CCCED2"}
       position={"relative"}
       borderBottom={"1px solid #0000001c"}
     >

@@ -1,72 +1,14 @@
-.tableWrapper > table,
-table.tableWrapper {
-  border-collapse: collapse;
-  margin-top: 0.75rem !important;
-  margin-bottom: 0.75rem !important;
-  overflow: hidden;
-  table-layout: fixed;
-  width: 100%;
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
 
-  td,
-  th {
-    border: 2px solid #ced4da;
-    box-sizing: border-box;
-    min-width: 1em;
-    padding: 3px 5px !important;
-    position: relative;
-    vertical-align: top;
-
-    > * {
-      margin-bottom: 0 !important;
-    }
-  }
-
-  th {
-    background-color: #f1f3f5;
-    font-weight: bold;
-    text-align: left;
-  }
-
-  .selectedCell:after {
-    background: rgba(200, 200, 255, 0.4);
-    content: "";
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    pointer-events: none;
-    position: absolute;
-    z-index: 2;
-  }
-
-  .column-resize-handle {
-    background-color: #adf;
-    bottom: -2px;
-    position: absolute;
-    right: -2px;
-    pointer-events: none;
-    top: 0;
-    width: 4px;
-    padding: 0 !important;
-    border-radius: 0 !important;
-  }
-
-  p {
-    margin: 0 !important;
-  }
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.tableWrapper {
-  padding: 0 !important;
-  overflow-x: auto;
-}
-
-.resize-cursor {
-  cursor: ew-resize;
-  cursor: col-resize;
-}
-
-/* Calendar */
 .calendar__header {
   display: flex;
   justify-content: space-between;

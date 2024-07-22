@@ -37,6 +37,12 @@ export interface BriefEvent {
   marginLeft?: number;
 }
 
+export type TimelineStatusText =
+  | "not__started"
+  | "final"
+  | "complete"
+  | "draft";
+
 export type ViewOption = {
   label: string;
   value: ViewValue.Month | ViewValue.Week | ViewValue.Day;
@@ -132,3 +138,8 @@ export const ganttViewOptions: GanttViewOption[] = [
     value: GanntViewValue.Quarter,
   },
 ];
+
+export const MIN_NUM_OF_DAYS__DAY = 56; // -> 56 days 8 weeks
+export const MIN_NUM_OF_DAYS__WEEK = 84; // -> 84 days 12 weeks
+export const MIN_NUM_OF_DAYS__MONTH = 300; // -> 300 days 10 months
+export const MIN_NUM_OF_DAYS__QUARTER = 540; // -> 540 days 18 months 6 quarters

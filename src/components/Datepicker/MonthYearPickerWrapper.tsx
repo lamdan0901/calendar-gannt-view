@@ -1,20 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
-import MonthYearPicker from './MonthYearPicker';
-import { Button, useOutsideClick } from '@chakra-ui/react';
+import React, { useEffect, useRef, useState } from "react";
+import MonthYearPicker from "./MonthYearPicker";
+import { Button, useOutsideClick } from "@chakra-ui/react";
 
 const months = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MAY",
+  "JUN",
+  "JUL",
+  "AUG",
+  "SEP",
+  "OCT",
+  "NOV",
+  "DEC",
 ];
 
 interface MonthYearPickerWrapperProps {
@@ -56,7 +56,7 @@ const MonthYearPickerWrapper = ({
 
   return (
     <div ref={ref} className="month-year-picker-wrapper">
-      <Button colorScheme="gray" variant="ghost" onClick={togglePicker}>
+      <Button onClick={togglePicker}>
         {capitalizeFirstLetter(`${months[selectedMonth]} ${selectedYear}`)}
       </Button>
       {showPicker && (

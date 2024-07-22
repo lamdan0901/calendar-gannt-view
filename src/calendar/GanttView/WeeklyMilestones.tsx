@@ -59,6 +59,7 @@ export function MilestoneList({
       pl={`${dayWidth / 2}px`}
       py={"8px"}
       position={"relative"}
+      borderLeft={"1px solid #CCCED2"}
       borderBottom={"1px solid #0000001c"}
     >
       {calculatedTimelines?.map((timeline) => (

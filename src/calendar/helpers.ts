@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { TimelineStatus } from "@/interfaces/project";
-import { BriefEvent } from "@/calendar/const";
+import { BriefEvent, TimelineStatusText } from "@/calendar/const";
 
 export const startOfMonth = (date: Date): Date =>
   new Date(date.getFullYear(), date.getMonth(), 1);
@@ -29,7 +29,20 @@ export const formatDate = (date: Date): string =>
 export const getDay = (date: Date) => date.toDateString().slice(0, 3);
 export const getShortDay = (date: Date) => date.toDateString().slice(0, 1);
 
-export function getTimelineStatus(status: TimelineStatus) {
+export function getFirstDayOfQuarter(
+  year: string | undefined,
+  quarter: number
+) {
+  const firstMonthOfQuarter = (quarter - 1) * 3 + 1;
+  return dayjs(`${year}-${firstMonthOfQuarter}-01`);
+}
+
+export function getLastDayOfQuarter(year: string | undefined, quarter: number) {
+  const lastMonthOfQuarter = quarter * 3;
+  return dayjs(`${year}-${lastMonthOfQuarter}-01`).endOf("month");
+}
+
+export function getTimelineStatus(status: TimelineStatus): TimelineStatusText {
   switch (status) {
     case TimelineStatus.NOT_STARTED:
       return "not__started";

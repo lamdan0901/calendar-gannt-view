@@ -1,11 +1,11 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { Box, Button, Stack } from "@chakra-ui/react";
-import { parseDate } from "@internationalized/date";
-import { useBrief } from "@/calendar/queries";
+import { useBrief, useBriefList, useMilestones } from "@/calendar/queries";
 import { DatePicker } from "@/components/Datepicker/DatePicker";
 import MonthYearPickerWrapper from "@/components/Datepicker/MonthYearPickerWrapper";
 import Select from "@/components/Select";
-import { useMemo, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { Box, Button } from "@chakra-ui/react";
+import { parseDate } from "@internationalized/date";
+import { useState } from "react";
 import {
   Direction,
   StatusOption,
@@ -13,15 +13,7 @@ import {
   statusOptions,
   viewOptions,
 } from "../const";
-import {
-  addDays,
-  endOfMonth,
-  endOfWeek,
-  formatDate,
-  removeDuplicateBriefs,
-  startOfMonth,
-  startOfWeek,
-} from "../helpers";
+import { addDays, removeDuplicateBriefs } from "../helpers";
 import DayView from "./DayView";
 import MonthView from "./MonthView";
 import WeekView from "./WeekView";
@@ -42,30 +34,8 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
     label: string;
   } | null>(null);
 
-  const fromTo = useMemo(() => {
-    switch (view) {
-      case ViewValue.Day:
-        return {
-          from: formatDate(currentDate),
-          to: formatDate(currentDate),
-        };
-      case ViewValue.Week:
-        return {
-          from: formatDate(startOfWeek(currentDate)),
-          to: formatDate(endOfWeek(currentDate)),
-        };
-      case ViewValue.Month:
-        return {
-          from: formatDate(startOfMonth(currentDate)),
-          to: formatDate(endOfMonth(currentDate)),
-        };
-    }
-  }, [currentDate, view]);
-
   function formatBriefParams() {
-    const params: Record<string, string> = {
-      ...fromTo,
-    };
+    const params: Record<string, string> = {};
     if (status) params.status = status.value.toString();
     if (dueDate) params.dueDate = dueDate;
     if (selectedBrief) {
@@ -74,31 +44,12 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
     if (selectedMilestone) {
       params.milestoneId = selectedMilestone.value;
     }
-    let searchParams = new URLSearchParams(params).toString();
-
-    return searchParams;
+    return new URLSearchParams(params).toString();
   }
 
   const briefs = useBrief(formatBriefParams());
-  const briefList = useBrief(new URLSearchParams(fromTo).toString());
-  const milestoneList = useBrief(
-    selectedBrief?.value
-      ? new URLSearchParams({
-          ...fromTo,
-          projectId: selectedBrief?.value ?? "",
-        }).toString()
-      : ""
-  );
-
-  const briefOptions = removeDuplicateBriefs(briefList ?? [])?.map((brief) => ({
-    createdByUserId: brief.project.createdByUserId,
-    value: brief.projectId,
-    label: brief.project.name,
-  }));
-  const milestoneOptions = milestoneList?.map((milestone) => ({
-    value: milestone.id,
-    label: milestone.milestone,
-  }));
+  const briefOptions = useBriefList();
+  const milestoneOptions = useMilestones(selectedBrief?.value);
 
   function clearFilter() {
     setStatus(null);
@@ -168,7 +119,12 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
   return (
     <div style={{ display: isCurrentView ? "block" : "none" }}>
       <header className="calendar__header">
-        <Stack direction={"row"}>
+        <Box
+          display={"flex"}
+          alignItems={"center"}
+          flexWrap={"wrap"}
+          gap={"10px"}
+        >
           <MonthYearPickerWrapper
             currentDate={currentDate}
             onChange={(date) => {
@@ -179,6 +135,12 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
           <Button
             colorScheme="gray"
             variant="ghost"
+            sx={{
+              color: "black",
+              border: "1px solid #A6A9B0",
+              fontWeight: "400",
+              bgColor: "white",
+            }}
             onClick={() => handleDateChange(Direction.Prev)}
           >
             <ChevronLeftIcon w={6} h={6} />
@@ -186,6 +148,12 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
           <Button
             colorScheme="gray"
             variant="ghost"
+            sx={{
+              color: "black",
+              border: "1px solid #A6A9B0",
+              fontWeight: "400",
+              bgColor: "white",
+            }}
             onClick={() => handleDateChange(Direction.Next)}
           >
             <ChevronRightIcon w={6} h={6} />
@@ -203,7 +171,7 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
           >
             Today
           </Button>
-          <Box w="115px">
+          <Box w="135px">
             <Select
               isSearchable={false}
               size="md"
@@ -212,7 +180,7 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
               onChange={handleViewChange}
             />
           </Box>
-        </Stack>
+        </Box>
 
         <Box
           display={"flex"}
@@ -248,6 +216,7 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
           </Box>
           <Box width="136px">
             <DatePicker
+              aria-label="date-input"
               minW="136px"
               value={dueDate ? parseDate(dueDate.split("T")[0]) : (null as any)}
               onChange={(value) => setDueDate(value?.toString() || null)}
@@ -270,11 +239,7 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
               }}
             />
           </Box>
-          <Button
-            onClick={clearFilter}
-            disabled={!selectedBrief}
-            flexShrink={0}
-          >
+          <Button onClick={clearFilter} flexShrink={0}>
             Clear filter
           </Button>
         </Box>
