@@ -5,17 +5,15 @@ import { MilestoneList } from "@/calendar/GanttView/WeeklyMilestones";
 import { endOfWeek, startOfWeek } from "@/calendar/helpers";
 
 export function WeekView({
-  timelines,
+  timelineGroups,
   startDate,
   endDate,
 }: {
-  timelines?: BriefEvent[];
+  timelineGroups: Record<string, BriefEvent[]>;
   startDate: Date;
   endDate: Date;
 }) {
   const getWeeks = () => {
-    if (!timelines || timelines.length === 0) return {};
-
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfWeek(startDate));
     let endDateOfView = dayjs(endOfWeek(endDate));
@@ -63,7 +61,7 @@ export function WeekView({
         months[monthYear] = { month: firstMonth, monthWidth: 0 };
       }
       if (!hasLastM) {
-        const dateString = days[days.length - 1]?.toDate().toDateString() ?? "";
+        const dateString = days.at(-1)?.toDate().toDateString() ?? "";
         const monthYear = dateString.slice(4, 7) + dateString.slice(10);
         months[monthYear] = { month: lastMonth, monthWidth: 0 };
       }
@@ -79,20 +77,24 @@ export function WeekView({
     return { months, weeks };
   };
 
-  if (!timelines || timelines.length === 0) return null;
-
   const weekWidth = 155;
   const daysPerWeek = 7;
   const dayWidth = weekWidth / daysPerWeek;
 
   const { months, weeks } = getWeeks();
+  const groups = Object.values(timelineGroups);
 
-  // the diff between the start of the week and the startDate of first timeline
-  const startDayOfWeek = dayjs(startOfWeek(startDate));
-  const initialTimelineMarginLeft = dayjs(startDate).diff(
-    startDayOfWeek,
-    "day"
-  );
+  // the diffs between the start of the week and the startDate of first timeline of each brief
+  const startDayOfWeek = startOfWeek(startDate);
+  const initialTimelineMarginLefts: Record<number, number> = {};
+  groups.forEach((timelines, i) => {
+    const createdAt = new Date(timelines[0].project.createdAt);
+    createdAt.setHours(0, 0, 0, 0);
+
+    initialTimelineMarginLefts[i] = Math.abs(
+      dayjs(createdAt).diff(startDayOfWeek, "day")
+    );
+  });
 
   return (
     <Box pl="8px" h={"calc(100vh - 187px)"} overflow={"auto"}>
@@ -139,13 +141,16 @@ export function WeekView({
         ))}
       </Box>
 
-      <MilestoneList
-        timelines={timelines}
-        weeks={weeks ?? []}
-        dayWidth={dayWidth}
-        weekWidth={weekWidth}
-        initialTimelineMarginLeft={initialTimelineMarginLeft}
-      />
+      {groups.map((timelines, i) => (
+        <MilestoneList
+          key={i}
+          timelines={timelines}
+          weeks={weeks ?? []}
+          dayWidth={dayWidth}
+          weekWidth={weekWidth}
+          initialTimelineMarginLeft={initialTimelineMarginLefts[i]}
+        />
+      ))}
     </Box>
   );
 }

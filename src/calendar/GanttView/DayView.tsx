@@ -5,17 +5,15 @@ import { MilestoneList } from "@/calendar/GanttView/WeeklyMilestones";
 import { endOfWeek, getShortDay, startOfWeek } from "@/calendar/helpers";
 
 export function DayView({
-  timelines,
+  timelineGroups,
   startDate,
   endDate,
 }: {
-  timelines?: BriefEvent[];
+  timelineGroups: Record<string, BriefEvent[]>;
   startDate: Date;
   endDate: Date;
 }) {
   const getDays = () => {
-    if (!timelines || timelines.length === 0) return {};
-
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfWeek(startDate));
     let endDateOfView = dayjs(endOfWeek(endDate));
@@ -44,17 +42,22 @@ export function DayView({
     return groupedDays;
   };
 
-  if (!timelines || timelines.length === 0) return null;
-
   const groupedDays = getDays();
   const weeks = Object.keys(groupedDays);
+  const groups = Object.values(timelineGroups);
 
-  // the diff between the start of the week and the startDate of first timeline
-  const startDayOfWeek = dayjs(startOfWeek(startDate));
-  const initialTimelineMarginLeft = dayjs(startDate).diff(
-    startDayOfWeek,
-    "day"
-  );
+  // the diffs between the start of the week and the startDate of first timeline of each brief
+  const startDayOfWeek = startOfWeek(startDate);
+  const initialTimelineMarginLefts: Record<number, number> = {};
+
+  groups.forEach((timelines, i) => {
+    const createdAt = new Date(timelines[0].project.createdAt);
+    createdAt.setHours(0, 0, 0, 0);
+
+    initialTimelineMarginLefts[i] = Math.abs(
+      dayjs(createdAt).diff(startDayOfWeek, "day")
+    );
+  });
 
   const borderWidth = 1;
   const dayWidth = 33;
@@ -109,13 +112,16 @@ export function DayView({
         ))}
       </Box>
 
-      <MilestoneList
-        timelines={timelines}
-        weeks={weeks}
-        dayWidth={dayWidth}
-        weekWidth={weekWidth}
-        initialTimelineMarginLeft={initialTimelineMarginLeft}
-      />
+      {groups.map((timelines, i) => (
+        <MilestoneList
+          key={i}
+          timelines={timelines}
+          weeks={weeks}
+          dayWidth={dayWidth}
+          weekWidth={weekWidth}
+          initialTimelineMarginLeft={initialTimelineMarginLefts[i]}
+        />
+      ))}
     </Box>
   );
 }

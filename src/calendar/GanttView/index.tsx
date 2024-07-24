@@ -60,65 +60,67 @@ export function GanttView({ isCurrentView }: { isCurrentView: boolean }) {
     setSelectedBrief(null);
   }
 
-  const renderView = () => {
-    if (!selectedBrief?.value) return null;
+  function getViewProps() {
+    if (!briefList?.length || !briefs?.length) return null;
 
-    const selectedGroup = groupedTimelines[selectedBrief.value]?.sort(
-      (t1, t2) =>
-        new Date(t1.dueDate).getTime() - new Date(t2.dueDate).getTime()
+    let startDate: Date;
+    let endDate: Date;
+    let timelineGroups: Record<string, BriefEvent[]> = {};
+
+    timelineGroups = selectedBrief?.value
+      ? {
+          [selectedBrief.value]: groupedTimelines[selectedBrief.value],
+        }
+      : groupedTimelines;
+
+    const selectedTimelineGroups = Object.values(timelineGroups);
+
+    selectedTimelineGroups.forEach((timelineGroup) =>
+      timelineGroup?.sort(
+        (t1, t2) =>
+          new Date(t1.dueDate).getTime() - new Date(t2.dueDate).getTime()
+      )
     );
 
-    const startDate = new Date(selectedGroup?.[0]?.project?.createdAt);
+    const sortedTimelines = selectedTimelineGroups
+      .flat()
+      .sort(
+        (t1, t2) =>
+          new Date(t1.dueDate).getTime() - new Date(t2.dueDate).getTime()
+      );
+
+    startDate = new Date(sortedTimelines[0].project.createdAt);
     startDate?.setHours(0, 0, 0, 0);
 
-    const endDate = new Date(
-      selectedGroup?.reduce((oldest, current) => {
-        return current.dueDate > oldest ? current.dueDate : oldest;
-      }, selectedGroup[0].dueDate)
-    );
+    endDate = new Date(sortedTimelines.at(-1)!.dueDate);
     endDate?.setHours(0, 0, 0, 0);
 
-    const timelines = selectedGroup?.map((t, i) => {
-      if (i === 0) return { ...t, startDate: startDate.toISOString() };
-      return {
-        ...t,
-        startDate: selectedGroup[i - 1].dueDate,
-      };
+    selectedTimelineGroups.forEach((group) => {
+      const timelineStartD = new Date(group[0].project.createdAt);
+      timelineStartD.setHours(0, 0, 0, 0);
+
+      group.forEach((t, i) => {
+        t.startDate =
+          i === 0 ? timelineStartD.toISOString() : group[i - 1].dueDate;
+      });
     });
+
+    return { timelineGroups, startDate, endDate };
+  }
+
+  const renderView = () => {
+    const props = getViewProps();
+    if (!props) return null;
 
     switch (view) {
       case GanntViewValue.Quarter:
-        return (
-          <QuarterView
-            startDate={startDate}
-            endDate={endDate}
-            timelines={timelines}
-          />
-        );
+        return <QuarterView {...props} />;
       case GanntViewValue.Month:
-        return (
-          <MonthView
-            startDate={startDate}
-            endDate={endDate}
-            timelines={timelines}
-          />
-        );
+        return <MonthView {...props} />;
       case GanntViewValue.Week:
-        return (
-          <WeekView
-            startDate={startDate}
-            endDate={endDate}
-            timelines={timelines}
-          />
-        );
+        return <WeekView {...props} />;
       case GanntViewValue.Day:
-        return (
-          <DayView
-            startDate={startDate}
-            endDate={endDate}
-            timelines={timelines}
-          />
-        );
+        return <DayView {...props} />;
     }
   };
 

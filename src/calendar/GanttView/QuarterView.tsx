@@ -14,11 +14,11 @@ import quarterOfYear from "dayjs/plugin/quarterOfYear";
 dayjs.extend(quarterOfYear);
 
 export function QuarterView({
-  timelines,
+  timelineGroups,
   startDate,
   endDate,
 }: {
-  timelines?: BriefEvent[];
+  timelineGroups: Record<string, BriefEvent[]>;
   startDate: Date;
   endDate: Date;
 }) {
@@ -26,21 +26,16 @@ export function QuarterView({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const getQuarters = () => {
-    if (!timelines || timelines.length === 0) return {};
-
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfMonth(startDate));
     let endDateOfView = dayjs(endOfMonth(endDate));
 
     const startEndDiff = endDateOfView.diff(startDateOfView, "day");
-
     if (startEndDiff < MIN_NUM_OF_DAYS__QUARTER) {
       endDateOfView = dayjs(endDate)
-        .endOf("month")
-        .add(MIN_NUM_OF_DAYS__QUARTER - startEndDiff, "day");
+        .add(MIN_NUM_OF_DAYS__QUARTER - startEndDiff, "day")
+        .endOf("week");
     }
-
-    console.log("endDateOfView: ", endDateOfView);
 
     while (startDateOfView.isSameOrBefore(endDateOfView, "day")) {
       days.push(startDateOfView);
@@ -64,18 +59,24 @@ export function QuarterView({
     if (containerRef.current) {
       setContainerWidth(containerRef.current?.clientWidth ?? 0);
     }
-  }, [timelines]);
-
-  if (!timelines || timelines.length === 0) return null;
+  }, [timelineGroups]);
 
   const groupedQuarters = getQuarters();
   const years = Object.keys(groupedQuarters);
+  const groups = Object.values(timelineGroups);
 
-  // the diff between the startDates of the first Quarter and the first Timeline
-  const initialTimelineMarginLeft = dayjs(startDate).diff(
-    dayjs(startDate).startOf("quarter").toDate(),
-    "day"
-  );
+  // the diffs between the startDate of the first Quarter and the first Timeline of each brief
+  const startDayOfQuarter = dayjs(startDate).startOf("quarter");
+  const initialTimelineMarginLefts: Record<number, number> = {};
+
+  groups.forEach((timelines, i) => {
+    const createdAt = new Date(timelines[0].project.createdAt);
+    createdAt.setHours(0, 0, 0, 0);
+
+    initialTimelineMarginLefts[i] = Math.abs(
+      startDayOfQuarter.diff(createdAt, "day")
+    );
+  });
 
   const quarterWidth = 265;
   const quarters = Object.values(groupedQuarters).flat();
@@ -90,8 +91,8 @@ export function QuarterView({
     <Box h={"calc(100vh - 187px)"} pl={"6px"} overflow={"auto"}>
       <Box
         w={"fit-content"}
-        ref={containerRef}
         borderLeft={"1px solid #CCCED2"}
+        ref={containerRef}
         borderBlock={"1px solid #CCCED2"}
         display={"flex"}
       >
@@ -127,14 +128,17 @@ export function QuarterView({
         ))}
       </Box>
 
-      <MilestoneListForYear
-        timelines={timelines}
-        containerWidth={containerWidth}
-        monthWidth={quarterWidth}
-        numOfDays={numOfDays}
-        numOfMonths={quarters.length}
-        initialTimelineMarginLeft={initialTimelineMarginLeft}
-      />
+      {groups.map((timelines, i) => (
+        <MilestoneListForYear
+          key={i}
+          timelines={timelines}
+          containerWidth={containerWidth}
+          monthWidth={quarterWidth}
+          numOfDays={numOfDays}
+          numOfMonths={quarters.length}
+          initialTimelineMarginLeft={initialTimelineMarginLefts[i]}
+        />
+      ))}
     </Box>
   );
 }

@@ -6,11 +6,11 @@ import { endOfMonth, startOfMonth } from "@/calendar/helpers";
 import { useEffect, useRef, useState } from "react";
 
 export function MonthView({
-  timelines,
+  timelineGroups,
   startDate,
   endDate,
 }: {
-  timelines?: BriefEvent[];
+  timelineGroups: Record<string, BriefEvent[]>;
   startDate: Date;
   endDate: Date;
 }) {
@@ -18,8 +18,6 @@ export function MonthView({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const getMonths = () => {
-    if (!timelines || timelines.length === 0) return {};
-
     const days: dayjs.Dayjs[] = [];
     let startDateOfView = dayjs(startOfMonth(startDate));
     let endDateOfView = dayjs(endOfMonth(endDate));
@@ -27,8 +25,8 @@ export function MonthView({
     const startEndDiff = endDateOfView.diff(startDateOfView, "day");
     if (startEndDiff < MIN_NUM_OF_DAYS__MONTH) {
       endDateOfView = dayjs(endDate)
-        .endOf("month")
-        .add(MIN_NUM_OF_DAYS__MONTH - startEndDiff, "day");
+        .add(MIN_NUM_OF_DAYS__MONTH - startEndDiff, "day")
+        .endOf("week");
     }
 
     while (startDateOfView.isSameOrBefore(endDateOfView, "day")) {
@@ -53,18 +51,24 @@ export function MonthView({
     if (containerRef.current) {
       setContainerWidth(containerRef.current?.clientWidth ?? 0);
     }
-  }, [timelines]);
-
-  if (!timelines || timelines.length === 0) return null;
+  }, [timelineGroups]);
 
   const groupedMonths = getMonths();
   const years = Object.keys(groupedMonths);
+  const groups = Object.values(timelineGroups);
 
-  // the diff between the startDate of the first month and the startDate of first timeline
-  const initialTimelineMarginLeft = dayjs(startDate).diff(
-    startOfMonth(startDate),
-    "day"
-  );
+  // the diffs between the startDate of the first month and the startDate of first timeline of each brief
+  const startDayOfQuarter = dayjs(startDate).startOf("month");
+  const initialTimelineMarginLefts: Record<number, number> = {};
+
+  groups.forEach((timelines, i) => {
+    const createdAt = new Date(timelines[0].project.createdAt);
+    createdAt.setHours(0, 0, 0, 0);
+
+    initialTimelineMarginLefts[i] = Math.abs(
+      startDayOfQuarter.diff(createdAt, "day")
+    );
+  });
 
   const monthWidth = 186;
   const months = Object.values(groupedMonths).flat();
@@ -113,14 +117,17 @@ export function MonthView({
         ))}
       </Box>
 
-      <MilestoneListForYear
-        timelines={timelines}
-        containerWidth={containerWidth}
-        monthWidth={monthWidth}
-        numOfDays={numOfDays}
-        numOfMonths={months.length}
-        initialTimelineMarginLeft={initialTimelineMarginLeft}
-      />
+      {groups.map((timelines, i) => (
+        <MilestoneListForYear
+          key={i}
+          timelines={timelines}
+          containerWidth={containerWidth}
+          monthWidth={monthWidth}
+          numOfDays={numOfDays}
+          numOfMonths={months.length}
+          initialTimelineMarginLeft={initialTimelineMarginLefts[i]}
+        />
+      ))}
     </Box>
   );
 }
