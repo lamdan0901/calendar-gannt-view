@@ -1,6 +1,12 @@
 import { TIMELINE_STATUS_LABEL } from "@/constants/project";
 import { TimelineStatus } from "@/interfaces/project";
 
+export type TSelectedBrief = {
+  value: string;
+  label: string;
+  createdByUserId: string;
+};
+
 export interface CalendarEvent {
   id: number;
   title: string;
@@ -35,6 +41,7 @@ export interface BriefEvent {
   //extra
   width?: number;
   marginLeft?: number;
+  isHidden?: boolean;
 }
 
 export type TimelineStatusText =

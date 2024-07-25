@@ -1,19 +1,19 @@
-import { useBrief, useBriefList, useMilestones } from "@/calendar/queries";
-import { DatePicker } from "@/components/Datepicker/DatePicker";
-import MonthYearPickerWrapper from "@/components/Datepicker/MonthYearPickerWrapper";
+import { useBrief, useBriefList } from "@/calendar/queries";
+import MonthYearPickerWrapper from "@/components/MonthYearPicker/MonthYearPickerWrapper";
 import Select from "@/components/Select";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { Box, Button } from "@chakra-ui/react";
-import { parseDate } from "@internationalized/date";
 import { useState } from "react";
 import {
   Direction,
   StatusOption,
+  TSelectedBrief,
+  ViewOption,
   ViewValue,
   statusOptions,
   viewOptions,
 } from "../const";
-import { addDays, removeDuplicateBriefs } from "../helpers";
+import { addDays } from "../helpers";
 import DayView from "./DayView";
 import MonthView from "./MonthView";
 import WeekView from "./WeekView";
@@ -21,54 +21,38 @@ import WeekView from "./WeekView";
 function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
   const [view, setView] = useState(ViewValue.Month);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [dueDate, setDueDate] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusOption | null>(null);
+  const [selectedBrief, setSelectedBrief] = useState<TSelectedBrief | null>(
+    null
+  );
 
-  const [selectedBrief, setSelectedBrief] = useState<{
-    value: string;
-    label: string;
-    createdByUserId: string;
-  } | null>(null);
-  const [selectedMilestone, setSelectedMilestone] = useState<{
-    value: string;
-    label: string;
-  } | null>(null);
-
-  function formatBriefParams() {
-    const params: Record<string, string> = {};
-    if (status) params.status = status.value.toString();
-    if (dueDate) params.dueDate = dueDate;
-    if (selectedBrief) {
-      params.projectId = selectedBrief.value;
-    }
-    if (selectedMilestone) {
-      params.milestoneId = selectedMilestone.value;
-    }
-    return new URLSearchParams(params).toString();
-  }
-
-  const briefs = useBrief(formatBriefParams());
   const briefOptions = useBriefList();
-  const milestoneOptions = useMilestones(selectedBrief?.value);
+  const briefs = useBrief({
+    status: status?.value,
+    projectId: selectedBrief?.value,
+  });
 
   function clearFilter() {
     setStatus(null);
     setSelectedBrief(null);
-    setSelectedMilestone(null);
-    setDueDate(null);
   }
 
   const handleDateChange = (direction: Direction) => {
     let newDate: Date;
-    if (view === ViewValue.Month) {
-      newDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + (direction === Direction.Next ? 1 : -1)
-      );
-    } else if (view === ViewValue.Week) {
-      newDate = addDays(currentDate, direction === Direction.Next ? 7 : -7);
-    } else {
-      newDate = addDays(currentDate, direction === Direction.Next ? 1 : -1);
+
+    switch (view) {
+      case ViewValue.Month:
+        newDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + (direction === Direction.Next ? 1 : -1)
+        );
+        break;
+      case ViewValue.Week:
+        newDate = addDays(currentDate, direction === Direction.Next ? 7 : -7);
+        break;
+      case ViewValue.Day:
+        newDate = addDays(currentDate, direction === Direction.Next ? 1 : -1);
+        break;
     }
 
     setCurrentDate(newDate);
@@ -86,33 +70,25 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
     clearFilter();
   };
 
-  function handleViewChange(newValue: any) {
+  function handleViewChange(newValue: ViewOption) {
     setView(newValue.value);
     clearFilter();
   }
 
   const renderView = () => {
+    const props = {
+      date: currentDate,
+      events: briefs,
+      onDateClick: handleDateClick,
+    };
+
     switch (view) {
       case ViewValue.Month:
-        return (
-          <MonthView
-            date={currentDate}
-            events={briefs}
-            onDateClick={handleDateClick}
-          />
-        );
+        return <MonthView {...props} />;
       case ViewValue.Week:
-        return (
-          <WeekView
-            date={currentDate}
-            events={briefs}
-            onDateClick={handleDateClick}
-          />
-        );
+        return <WeekView {...props} />;
       case ViewValue.Day:
-        return (
-          <DayView date={currentDate} events={briefs} onEventClick={() => {}} />
-        );
+        return <DayView {...props} />;
     }
   };
 
@@ -188,48 +164,23 @@ function Calendar({ isCurrentView }: { isCurrentView: boolean }) {
           flexWrap={"wrap"}
           gap={"10px"}
         >
-          <Box minW="188px">
+          <Box minW="300px">
             <Select
               isSearchable
               size="md"
               options={briefOptions}
+              isClearable
               placeholder="Select a brief"
               value={selectedBrief}
-              onChange={(newValue: any) => {
-                setSelectedMilestone(null);
+              onChange={(newValue: TSelectedBrief) => {
                 setSelectedBrief(newValue);
               }}
-            />
-          </Box>
-          <Box minW="210px">
-            <Select
-              isSearchable={false}
-              size="md"
-              options={milestoneOptions}
-              placeholder="Select a milestone"
-              value={selectedMilestone}
-              onChange={(newValue: any) => {
-                setSelectedMilestone(newValue);
-              }}
-              isDisabled={!selectedBrief}
-            />
-          </Box>
-          <Box width="136px">
-            <DatePicker
-              aria-label="date-input"
-              minW="136px"
-              value={dueDate ? parseDate(dueDate.split("T")[0]) : (null as any)}
-              onChange={(value) => setDueDate(value?.toString() || null)}
-              showLabel={false}
-              size="sm"
-              placeholder="Due Date"
-              isDisabled={!selectedBrief}
             />
           </Box>
           <Box minW="148px">
             <Select
               isSearchable={false}
-              isDisabled={!selectedBrief}
+              isClearable
               size="md"
               options={statusOptions}
               placeholder="Status"

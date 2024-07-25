@@ -32,6 +32,7 @@ function MileStone({ timeline }: { timeline: BriefEvent }) {
         key={timeline.id}
         position={"relative"}
         w={"auto"}
+        display={timeline.isHidden ? "none" : "block"}
         height={"28px"}
         overflow={"hidden"}
       >
