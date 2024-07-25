@@ -3,9 +3,11 @@ import Select from "@/components/Select";
 import {
   BriefEvent,
   GanntViewValue,
+  GanttViewOption,
   ganttViewOptions,
   StatusOption,
   statusOptions,
+  TSelectedBrief,
 } from "@/calendar/const";
 import { DayView } from "@/calendar/GanttView/DayView";
 import { MonthView } from "@/calendar/GanttView/MonthView";
@@ -16,28 +18,18 @@ import { useBrief } from "@/calendar/queries";
 import { useMemo, useState } from "react";
 
 export function GanttView({ isCurrentView }: { isCurrentView: boolean }) {
-  const [view, setView] = useState(GanntViewValue.Day);
+  const [view, setView] = useState(GanntViewValue.Week);
   const [status, setStatus] = useState<StatusOption | null>(null);
-
-  const [selectedBrief, setSelectedBrief] = useState<{
-    value: string;
-    label: string;
-    createdByUserId: string;
-  } | null>(null);
-
-  function formatBriefParams() {
-    let searchParams = "from=infinite";
-
-    if (selectedBrief) {
-      searchParams = `&projectId=${selectedBrief.value}`;
-    }
-    if (status) searchParams += `&status=${status.value.toString()}`;
-
-    return searchParams;
-  }
+  const [selectedBrief, setSelectedBrief] = useState<TSelectedBrief | null>(
+    null
+  );
 
   const briefList = useBrief();
-  const briefs = useBrief(formatBriefParams());
+  const briefs = useBrief({
+    status: status?.value,
+    projectId: selectedBrief?.value,
+    shouldHideFilteredTimelines: true,
+  });
 
   const groupedTimelines = useMemo(() => {
     return (briefs ?? [])?.reduce((acc, milestone) => {
@@ -133,7 +125,7 @@ export function GanttView({ isCurrentView }: { isCurrentView: boolean }) {
             size="md"
             options={ganttViewOptions}
             value={ganttViewOptions.find((v) => v.value === view)}
-            onChange={(v: any) => setView(v.value as GanntViewValue)}
+            onChange={(v: GanttViewOption) => setView(v.value)}
           />
         </Box>
         <HStack alignItems={"center"} flexWrap={"wrap"} gap={"10px"}>
@@ -142,9 +134,10 @@ export function GanttView({ isCurrentView }: { isCurrentView: boolean }) {
               isSearchable
               size="md"
               options={briefOptions}
+              isClearable
               placeholder="Select a brief"
               value={selectedBrief}
-              onChange={(newValue: any) => {
+              onChange={(newValue: TSelectedBrief) => {
                 setSelectedBrief(newValue);
               }}
             />
@@ -152,12 +145,12 @@ export function GanttView({ isCurrentView }: { isCurrentView: boolean }) {
           <Box minW="148px">
             <Select
               isSearchable={false}
-              isDisabled={!selectedBrief}
+              isClearable
               size="md"
               options={statusOptions}
               placeholder="Status"
               value={status}
-              onChange={(newValue: any) => {
+              onChange={(newValue: StatusOption) => {
                 setStatus(newValue);
               }}
             />

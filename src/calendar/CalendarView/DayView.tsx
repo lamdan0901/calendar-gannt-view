@@ -8,10 +8,9 @@ import { formatDate, getDay } from "../helpers";
 interface DayViewProps {
   date: Date;
   events?: BriefEvent[] | null;
-  onEventClick: (event: BriefEvent) => void;
 }
 
-const DayView = ({ date, events, onEventClick }: DayViewProps) => {
+const DayView = ({ date, events }: DayViewProps) => {
   const dateAndDay = getDay(date) + " " + date.getDate();
   const dayEvents = useMemo(
     () =>
@@ -55,7 +54,6 @@ const DayView = ({ date, events, onEventClick }: DayViewProps) => {
                 sx={{
                   cursor: "pointer",
                 }}
-                onClick={() => onEventClick(event)}
               />
             ))}
             <Button

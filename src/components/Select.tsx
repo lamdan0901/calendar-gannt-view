@@ -25,7 +25,7 @@ const chakraStyles: ChakraStylesConfig = {
     ...provided,
     bg: "none",
     color: "gray.500",
-    px: 3,
+    px: 0,
   }),
   option: (provided) => ({
     ...provided,
@@ -41,7 +41,6 @@ const chakraStyles: ChakraStylesConfig = {
   }),
   placeholder: (provided) => ({
     ...provided,
-    ml: 2,
     color: "#6D6D6D",
   }),
   menu: (provided) => ({
@@ -52,7 +51,6 @@ const chakraStyles: ChakraStylesConfig = {
 
 const Select = forwardRef<SelectProps, "div">((props, ref) => (
   <ChSelect
-    isClearable={false}
     size="lg"
     chakraStyles={chakraStyles}
     ref={ref}
